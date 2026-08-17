@@ -12,31 +12,32 @@ export default function GatherBenefitsMain() {
   const [isDisclaimerChecked, setIsDisclaimerChecked] = useState(false);
   const [showLimitModal, setShowLimitModal] = useState(false);
   
-  // 상태 관리 (비즈니스 로직 - 로컬 스토리지 연동)
+  // 상태 관리 (백엔드 DB 연동)
+  const [userId, setUserId] = useState<string>('');
   const [viewCount, setViewCount] = useState(0);
   const [isPremium, setIsPremium] = useState(false);
   const [lotteryWinner, setLotteryWinner] = useState('가입자');
 
-  // 초기 로드 시 로컬 스토리지에서 데이터 복원 및 시간 초기화
+  // DB Sync (초기 로드)
   useEffect(() => {
-    const savedCount = localStorage.getItem('couponViewCount');
-    const savedTime = localStorage.getItem('lastResetTime');
-    const premium = localStorage.getItem('isPremium') === 'true';
-    
-    setIsPremium(premium);
-    
-    const now = Date.now();
-    if (savedTime && now - parseInt(savedTime) > 1000 * 60 * 60) {
-      // 1시간이 지났으면 리셋
-      localStorage.setItem('couponViewCount', '0');
-      localStorage.setItem('lastResetTime', now.toString());
-      setViewCount(0);
-    } else {
-      if (savedCount) setViewCount(parseInt(savedCount));
-      if (!savedTime) localStorage.setItem('lastResetTime', now.toString());
+    let currentUserId = localStorage.getItem('gatherUserId');
+    if (!currentUserId) {
+      currentUserId = 'user-' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('gatherUserId', currentUserId);
     }
+    setUserId(currentUserId);
 
-    // 로또 당첨자 랜덤 세팅 (100분 주기 시뮬레이션용)
+    // API 통신을 통해 진짜 백엔드 DB에서 내 상태를 가져옴
+    fetch(`/api/user?userId=${currentUserId}`)
+      .then(res => res.json())
+      .then(data => {
+        if (!data.error) {
+          setViewCount(data.viewCount);
+          setIsPremium(data.isPremium);
+        }
+      });
+
+    // 100분 주기 시뮬레이션
     const randomUsers = ['김*수', '이*지', 'Park**', '유*진', '최*호'];
     setLotteryWinner(randomUsers[Math.floor(Math.random() * randomUsers.length)]);
   }, []);
@@ -47,20 +48,28 @@ export default function GatherBenefitsMain() {
     return matchCat && matchStatus;
   });
 
-  const openModal = (coupon: any) => {
+  const openModal = async (coupon: any) => {
     if (coupon.isExpired) return;
     
-    // 열람 제한 로직 (프리미엄이 아니고 3회 이상 본 경우)
+    // 로컬 상태로 먼저 체크 후 막음 (최적화)
     if (!isPremium && viewCount >= 3) {
       setShowLimitModal(true);
       return;
     }
 
-    // 조회수 증가
+    // 백엔드 DB에 '조회' 액션 전송
     if (!isPremium) {
-      const newCount = viewCount + 1;
-      setViewCount(newCount);
-      localStorage.setItem('couponViewCount', newCount.toString());
+      try {
+        const res = await fetch('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId, action: 'VIEW' })
+        });
+        const data = await res.json();
+        if (!data.error) setViewCount(data.viewCount);
+      } catch (e) {
+        console.error('DB Sync Error');
+      }
     }
 
     setSelectedCoupon(coupon);
@@ -79,19 +88,39 @@ export default function GatherBenefitsMain() {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
     alert('🔗 링크가 복사되었습니다! (+4,500원 즉시 적립 완료 & 열람 한도 1회 복구)');
-    // 공유 보상: 열람 횟수 1 차감 (추가 열람 1회 부여)
-    const newCount = Math.max(0, viewCount - 1);
-    setViewCount(newCount);
-    localStorage.setItem('couponViewCount', newCount.toString());
+    
+    // 백엔드 DB에 '공유' 액션 전송 (열람 횟수 -1 차감)
+    try {
+      const res = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action: 'SHARE' })
+      });
+      const data = await res.json();
+      if (!data.error) setViewCount(data.viewCount);
+    } catch (e) {
+      console.error('DB Sync Error');
+    }
     setShowLimitModal(false);
   };
 
-  const upgradePremium = () => {
-    alert('프리미엄 결제가 완료되었습니다! (시뮬레이션)');
-    setIsPremium(true);
-    localStorage.setItem('isPremium', 'true');
+  const upgradePremium = async () => {
+    alert('프리미엄 결제가 완료되었습니다! (DB 연동 시뮬레이션)');
+    
+    // 백엔드 DB에 '프리미엄 결제' 액션 전송
+    try {
+      const res = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, action: 'PREMIUM' })
+      });
+      const data = await res.json();
+      if (!data.error) setIsPremium(data.isPremium);
+    } catch (e) {
+      console.error('DB Sync Error');
+    }
     setShowLimitModal(false);
   };
 
@@ -122,8 +151,8 @@ export default function GatherBenefitsMain() {
           <h1 className="text-2xl font-black text-indigo-600 tracking-tighter">Gather Benefits</h1>
           <div className="flex items-center gap-3">
             {!isPremium && (
-              <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-                남은 열람: <span className="text-indigo-600">{Math.max(0, 3 - viewCount)}</span>회
+              <span className="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                남은 열람: <span className="text-indigo-600 font-black">{Math.max(0, 3 - viewCount)}</span>회 (DB 연동중)
               </span>
             )}
             <span className="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold hidden md:block">
