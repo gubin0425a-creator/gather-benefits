@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-console.log('[Auto-Scraper Bot] Starting 2-hour scheduled update...');
+console.log('[Auto-Scraper Bot] Starting 1-hour scheduled targeting update...');
 
 const dataPath = path.join(__dirname, '../data/coupons.json');
 let coupons = [];
@@ -10,10 +10,9 @@ if (fs.existsSync(dataPath)) {
   coupons = JSON.parse(fs.readFileSync(dataPath, 'utf-8'));
 }
 
-// 1. 만료 처리 시뮬레이션: 무작위로 1~3개의 활성 쿠폰을 만료 처리
+// 1. 만료 처리 (무작위)
 const activeCoupons = coupons.filter(c => !c.isExpired);
 const numToExpire = Math.floor(Math.random() * 3) + 1;
-
 for (let i = 0; i < numToExpire && i < activeCoupons.length; i++) {
   const index = Math.floor(Math.random() * activeCoupons.length);
   activeCoupons[index].isExpired = true;
@@ -21,31 +20,43 @@ for (let i = 0; i < numToExpire && i < activeCoupons.length; i++) {
   activeCoupons[index].title = `[마감] ${activeCoupons[index].title}`;
 }
 
-// 2. 신규 혜택 수집 시뮬레이션: 가장 오래된 만료 쿠폰을 지우고 새 쿠폰 추가
+// 2. 신규 파격 혜택(0원에 가장 가까운) 수집 시뮬레이션
+const maxDiscount = Math.floor(Math.random() * 20) + 80; // 80% ~ 99% 할인
 const newCoupon = {
-  id: `auto-${Date.now()}`,
-  brand: 'Netflix',
-  title: '스탠다드 요금제 첫 달 50% 할인 프로모션',
-  category: '도서·컨텐츠',
-  code: 'NETFLIX50',
-  url: 'https://netflix.com',
+  id: `auto-target-${Date.now()}`,
+  brand: 'VIP Special',
+  title: `[긴급] 0원에 수렴하는 ${maxDiscount}% 파격 할인`,
+  category: '종합몰',
+  code: `VIP${maxDiscount}`,
+  url: 'https://example.com/vip',
   isExpired: false,
-  badge: '🔥 NEW',
-  validUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString().split('T')[0],
-  usageGuide: '1. 넷플릭스 신규 가입\n2. 결제 단계에서 자동 할인 적용',
-  details: '단 7일간 진행되는 게릴라 혜택입니다!'
+  badge: `${maxDiscount}% OFF`,
+  validUntil: new Date(Date.now() + 1000 * 60 * 60 * 2).toISOString().split('T')[0],
+  usageGuide: '1. 한정 시간 내 결제\n2. 즉시 자동 할인',
+  details: '타겟팅 알고리즘이 찾아낸 가장 0원에 가까운 극강의 혜택입니다.'
 };
 
-const expiredIndexes = coupons.map((c, i) => c.isExpired ? i : -1).filter(i => i !== -1);
-if (expiredIndexes.length > 5) {
-  coupons.splice(expiredIndexes[0], 1); // 오래된 것 삭제
-}
-coupons.unshift(newCoupon); // 맨 앞에 새 쿠폰 추가
+coupons.push(newCoupon);
 
-// 100개 유지
-if (coupons.length > 100) {
-  coupons.pop();
+// 3. 타겟팅 정렬 알고리즘: 할인율(badge의 숫자)이 높을수록(0원에 가까울수록) 위로 배치
+coupons.sort((a, b) => {
+  // 만료된 것은 맨 아래로
+  if (a.isExpired && !b.isExpired) return 1;
+  if (!a.isExpired && b.isExpired) return -1;
+  
+  // badge에서 숫자만 추출 (ex: "50% OFF" -> 50)
+  const getDiscount = (c) => {
+    const match = c.badge.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  };
+  
+  return getDiscount(b) - getDiscount(a);
+});
+
+// 4. 슬롯 80개로 최적화 (가장 안 좋은 하위 데이터 삭제)
+if (coupons.length > 80) {
+  coupons = coupons.slice(0, 80);
 }
 
 fs.writeFileSync(dataPath, JSON.stringify(coupons, null, 2), 'utf-8');
-console.log(`[Auto-Scraper Bot] Successfully updated coupons. Total: ${coupons.length}`);
+console.log(`[Auto-Scraper Bot] Successfully targeted & sorted. Total slots: ${coupons.length}`);

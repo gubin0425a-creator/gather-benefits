@@ -2,7 +2,7 @@ name: 2-Hour Auto Scraper
 
 on:
   schedule:
-    - cron: '0 */2 * * *' # 매 2시간마다 실행
+    - cron: '0 * * * *' # 매 1시간마다 실행
   workflow_dispatch: # 수동 실행 버튼
 
 jobs:
