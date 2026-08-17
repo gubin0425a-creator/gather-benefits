@@ -85,6 +85,11 @@ const extraBenefits = [
   { type: '타임특가', title: '매일 정오 12시 런칭! 반값 타임특가', badge: '50% OFF', details: '선착순 한정 수량 반값 특가를 놓치지 마세요' }
 ];
 
+// Helper to generate SEO slugs
+const generateSlug = (str) => {
+  return str.replace(/[\[\]]/g, '').replace(/[\s\+]+/g, '-').replace(/[^a-zA-Z0-9가-힣\-]/g, '').toLowerCase() + '-coupon';
+};
+
 let coupons = [];
 let idCounter = 1;
 
@@ -93,6 +98,7 @@ brandsData.forEach(brandObj => {
   brandObj.benefits.forEach(benefit => {
     coupons.push({
       id: `m_${idCounter++}`,
+      slug: generateSlug(`${brandObj.brand}-${benefit.type}`),
       brand: brandObj.brand,
       title: benefit.title,
       category: brandObj.category,
@@ -113,10 +119,13 @@ while (coupons.length < 80) {
   const benefit = extraBenefits[Math.floor(Math.random() * extraBenefits.length)];
   const discount = Math.floor(Math.random() * 40 + 10);
   
+  const title = `[${brand}] ${benefit.title.replace('15%', `${discount}%`).replace('반값', `${discount}%`)}`;
+  
   coupons.push({
     id: `r_${idCounter++}`,
+    slug: generateSlug(`${brand}-${discount}percent-off`),
     brand: brand,
-    title: `[${brand}] ${benefit.title.replace('15%', `${discount}%`).replace('반값', `${discount}%`)}`,
+    title: title,
     category: '종합몰',
     code: `CODE${discount}`,
     url: 'https://example.com',

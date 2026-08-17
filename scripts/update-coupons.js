@@ -33,6 +33,7 @@ const maxDiscount = Math.floor(Math.random() * 20) + 80;
 
 coupons.push({
   id: `auto-target-${Date.now()}`,
+  slug: `baemin-${b.type}-${Date.now()}-coupon`,
   brand: '배달의민족', // 배민 안에 또 다른 성격의 혜택이 꽂힘
   title: `[초특가] ${b.title}`,
   category: '배달·포장',

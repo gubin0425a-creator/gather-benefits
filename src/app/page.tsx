@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import MOCK_COUPONS from '../../data/coupons.json';
 
 export default function GatherBenefitsMain() {
@@ -213,10 +214,10 @@ export default function GatherBenefitsMain() {
 
         {/* 쿠폰 그리드 렌더링 (최정예 80개) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredCoupons.map((coupon) => (
-            <article 
+          {filteredCoupons.map((coupon: any) => (
+            <Link 
               key={coupon.id} 
-              onClick={() => openModal(coupon)}
+              href={`/${coupon.slug}`}
               className={`bg-white rounded-2xl p-5 border transition-all flex flex-col ${
                 coupon.isExpired ? 'border-gray-200 opacity-50 grayscale' : 'border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 cursor-pointer'
               }`}
@@ -235,12 +236,12 @@ export default function GatherBenefitsMain() {
                 ⏳ 유효기간: {coupon.validUntil || '상시 진행'}
               </div>
 
-              <button disabled={coupon.isExpired} className={`w-full py-2.5 rounded-xl font-bold text-sm transition-colors ${
+              <div className={`text-center w-full py-2.5 rounded-xl font-bold text-sm transition-colors ${
                 coupon.isExpired ? 'bg-gray-100 text-gray-400' : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'
               }`}>
-                {coupon.isExpired ? '만료됨' : '상세보기 및 혜택 받기'}
-              </button>
-            </article>
+                {coupon.isExpired ? '만료됨' : '상세 혜택 페이지 이동 ➔'}
+              </div>
+            </Link>
           ))}
         </div>
       </div>
