@@ -5,9 +5,15 @@ import { useState } from 'react';
 // 1. [데이터 모델] 정적 JSON으로 관리될 데이터 규격
 const MOCK_COUPONS = [
   { id: '1', brand: '밀리의 서재', title: '첫 달 무료 + LGU+ 중복 캐시백', category: '도서·컨텐츠', code: null, url: 'https://millie.co.kr', isExpired: false, badge: '1개월 FREE' },
-  { id: '2', brand: '알리익스프레스', title: '초이스 데이 전품목 반값 할인', category: '해외직구', code: 'ALI50', url: 'https://aliexpress.com', isExpired: false, badge: '50% OFF' },
+  { id: '2', brand: '알리익스프레스', title: '초이스 데이 전품목 50% 할인', category: '해외직구', code: 'ALI50', url: 'https://aliexpress.com', isExpired: false, badge: '50% OFF' },
   { id: '3', brand: 'AppSumo', title: 'WriteSonic AI 마케팅 툴 평생 소장', category: 'AI·소프트웨어', code: null, url: 'https://appsumo.com', isExpired: false, badge: '♾️ 평생 결제' },
-  { id: '4', brand: 'Temu (테무)', title: '[마감] 신규 15만원 크레딧팩', category: '해외직구', code: null, url: '#', isExpired: true, badge: '종료됨' },
+  { id: '4', brand: 'Gemini Advanced', title: 'Google One AI 프리미엄 2개월 무료 체험', category: 'AI·소프트웨어', code: null, url: 'https://gemini.google.com/advanced', isExpired: false, badge: '2개월 무료' },
+  { id: '5', brand: '쿠팡 (Coupang)', title: '로켓와우 멤버십 신규 가입 첫 달 무료', category: '해외직구', code: null, url: 'https://coupang.com', isExpired: false, badge: '신규 가입' },
+  { id: '6', brand: 'Trip.com (트립닷컴)', title: '전 세계 항공권 및 호텔 최대 10% 추가 할인', category: '여행·숙박', code: 'TRIP10', url: 'https://kr.trip.com', isExpired: false, badge: '10% 쿠폰' },
+  { id: '7', brand: 'Notion', title: '대학생/교직원 인증 시 Plus 요금제 평생 무료', category: 'AI·소프트웨어', code: null, url: 'https://notion.so/education', isExpired: false, badge: '학생 무료' },
+  { id: '8', brand: 'ChatGPT Plus', title: '[마감] 개발자 API 연동 크레딧 $50 리워드', category: 'AI·소프트웨어', code: null, url: '#', isExpired: true, badge: '종료됨' },
+  { id: '9', brand: '야놀자', title: '가을 호캉스 기획전! 선착순 5만원 중복 할인', category: '여행·숙박', code: 'AUTUMN50', url: 'https://yanolja.com', isExpired: false, badge: 'HOT 핫딜' },
+  { id: '10', brand: 'Temu (테무)', title: '[마감] 신규 가입 15만원 크레딧팩', category: '해외직구', code: null, url: '#', isExpired: true, badge: '종료됨' },
 ];
 
 export default function GatherBenefitsMain() {
