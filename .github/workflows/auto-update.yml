@@ -1,0 +1,31 @@
+name: 2-Hour Auto Scraper
+
+on:
+  schedule:
+    - cron: '0 */2 * * *' # 매 2시간마다 실행
+  workflow_dispatch: # 수동 실행 버튼
+
+jobs:
+  update-coupons:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Run Scraper Script
+        run: node scripts/update-coupons.js
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "CouponMoa Auto-Bot"
+          git config --global user.email "bot@couponmoa.com"
+          git add data/coupons.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update: Scraped new coupons" && git push)

@@ -2,48 +2,7 @@
 
 import { useState } from 'react';
 
-const MOCK_COUPONS = [
-  { 
-    id: '1', brand: '밀리의 서재', title: '첫 달 무료 + LGU+ 중복 캐시백', category: '도서·컨텐츠', code: null, url: 'https://millie.co.kr', isExpired: false, badge: '1개월 FREE',
-    validUntil: '2026-12-31', usageGuide: '1. 아래 링크로 밀리의 서재 접속\n2. 회원가입 시 첫 달 무료 자동 적용\n3. 결제 수단에서 LGU+ 통신사 결제 선택 시 추가 캐시백', details: '독서의 계절, 15만 권의 베스트셀러를 무제한으로 즐겨보세요! 통신사 중복 할인까지 적용되어 가장 저렴하게 시작할 수 있는 완벽한 기회입니다.'
-  },
-  { 
-    id: '2', brand: '알리익스프레스', title: '초이스 데이 전품목 50% 할인', category: '해외직구', code: 'ALI50', url: 'https://aliexpress.com', isExpired: false, badge: '50% OFF',
-    validUntil: '2026-08-31', usageGuide: '1. 장바구니에 초이스(Choice) 상품 담기\n2. 결제 단계에서 프로모션 코드 [ALI50] 입력\n3. 즉시 50% 할인된 가격 확인 후 결제', details: '장바구니에 담아두셨던 위시리스트를 반값에 득템할 수 있는 절호의 찬스! 전 세계 최저가 혜택을 놓치지 마세요.'
-  },
-  { 
-    id: '3', brand: 'AppSumo', title: 'WriteSonic AI 마케팅 툴 평생 소장', category: 'AI·소프트웨어', code: null, url: 'https://appsumo.com', isExpired: false, badge: '♾️ 평생 결제',
-    validUntil: '선착순 한정', usageGuide: '1. 앱수모 공식 홈페이지 접속\n2. WriteSonic 딜 페이지에서 Buy Now 클릭\n3. 1회 결제로 매월 구독료 없이 평생 사용', details: '더 이상 매월 비싼 구독료를 내지 마세요! 단 한 번의 결제로 강력한 AI 카피라이팅 툴을 평생 소장할 수 있는 역대급 딜입니다.'
-  },
-  { 
-    id: '4', brand: 'Gemini Advanced', title: 'Google One AI 프리미엄 2개월 무료 체험', category: 'AI·소프트웨어', code: null, url: 'https://gemini.google.com/advanced', isExpired: false, badge: '2개월 무료',
-    validUntil: '2026-12-31', usageGuide: '1. 아래 버튼을 눌러 구글 One 페이지 접속\n2. 2개월 무료 체험 시작하기 클릭\n3. 구글의 가장 강력한 AI 모델인 Gemini 1.5 Pro를 무료로 경험', details: 'Google의 최상위 AI 모델을 2개월 동안 0원에 써볼 수 있는 환상적인 기회! 업무 효율을 200% 끌어올려 보세요.'
-  },
-  { 
-    id: '5', brand: '쿠팡 (Coupang)', title: '로켓와우 멤버십 신규 가입 첫 달 무료', category: '해외직구', code: null, url: 'https://coupang.com', isExpired: false, badge: '신규 가입',
-    validUntil: '상시 진행', usageGuide: '1. 쿠팡 앱 설치 또는 웹사이트 접속\n2. 로켓와우 멤버십 가입 페이지 이동\n3. 첫 달 무료 혜택 받고 묻지도 따지지도 않는 무료반품 경험하기', details: '무조건 무료 배송에 무료 반품까지! 대한민국 1등 멤버십의 압도적인 편리함을 한 달 동안 무료로 맘껏 누려보세요.'
-  },
-  { 
-    id: '6', brand: 'Trip.com (트립닷컴)', title: '전 세계 항공권 및 호텔 최대 10% 추가 할인', category: '여행·숙박', code: 'TRIP10', url: 'https://kr.trip.com', isExpired: false, badge: '10% 쿠폰',
-    validUntil: '2026-09-30', usageGuide: '1. 여행할 도시와 날짜 선택\n2. 결제창에서 할인 코드 [TRIP10] 입력\n3. 즉시 10% 추가 할인 혜택 적용', details: '꿈꾸던 해외여행, 더 늦기 전에 떠나보세요! 트립닷컴이 제공하는 최저가에 10% 추가 할인을 얹어 가장 스마트하게 여행을 준비할 수 있습니다.'
-  },
-  { 
-    id: '7', brand: 'Notion', title: '대학생/교직원 인증 시 Plus 요금제 평생 무료', category: 'AI·소프트웨어', code: null, url: 'https://notion.so/education', isExpired: false, badge: '학생 무료',
-    validUntil: '졸업 시까지', usageGuide: '1. 노션 가입 시 학교 이메일(.edu 또는 .ac.kr) 사용\n2. 설정 > 업그레이드 탭에서 학생 인증 버튼 클릭\n3. 무제한 파일 업로드가 가능한 Plus 요금제 무료 활성화', details: '과제 정리부터 취업 포트폴리오까지 노션 하나면 끝! 학생이라면 이 강력한 툴을 돈 한 푼 내지 않고 무제한으로 쓸 수 있습니다.'
-  },
-  { 
-    id: '8', brand: 'ChatGPT Plus', title: '[마감] 개발자 API 연동 크레딧 $50 리워드', category: 'AI·소프트웨어', code: null, url: '#', isExpired: true, badge: '종료됨',
-    validUntil: '2025-12-31', usageGuide: '프로모션이 종료되었습니다.', details: '해당 프로모션은 선착순 소진으로 조기 마감되었습니다. 다음 혜택을 기대해 주세요!'
-  },
-  { 
-    id: '9', brand: '야놀자', title: '가을 호캉스 기획전! 선착순 5만원 중복 할인', category: '여행·숙박', code: 'AUTUMN50', url: 'https://yanolja.com', isExpired: false, badge: 'HOT 핫딜',
-    validUntil: '2026-10-31', usageGuide: '1. 야놀자 앱에서 호캉스 기획전 배너 클릭\n2. 원하는 프리미엄 호텔 선택\n3. 결제 시 쿠폰함에서 5만원 할인 쿠폰 [AUTUMN50] 적용', details: '지친 일상에 완벽한 힐링을 선물하세요! 선착순 한정 5만원 파격 할인으로 특급 호텔을 모텔 가격에 예약할 수 있는 기회입니다.'
-  },
-  { 
-    id: '10', brand: 'Temu (테무)', title: '[마감] 신규 가입 15만원 크레딧팩', category: '해외직구', code: null, url: '#', isExpired: true, badge: '종료됨',
-    validUntil: '2026-01-01', usageGuide: '프로모션이 종료되었습니다.', details: '해당 프로모션은 종료되었습니다.'
-  },
-];
+import MOCK_COUPONS from '../../data/coupons.json';
 
 export default function GatherBenefitsMain() {
   const [activeCategory, setActiveCategory] = useState('전체');
